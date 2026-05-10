@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.14.37012.4
+VisualStudioVersion = 17.14.37012.4 d17.14
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SuperBunnyCut", "SuperBunnyCut.csproj", "{D871CAA3-E656-4E7D-9281-FF9847415E63}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SuperBunnyCut", "SuperBunnyCut.csproj", "{21DF7F4B-E208-4C57-85FC-A358FD3C4F3B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,15 +11,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{D871CAA3-E656-4E7D-9281-FF9847415E63}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D871CAA3-E656-4E7D-9281-FF9847415E63}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D871CAA3-E656-4E7D-9281-FF9847415E63}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D871CAA3-E656-4E7D-9281-FF9847415E63}.Release|Any CPU.Build.0 = Release|Any CPU
+		{21DF7F4B-E208-4C57-85FC-A358FD3C4F3B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{21DF7F4B-E208-4C57-85FC-A358FD3C4F3B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{21DF7F4B-E208-4C57-85FC-A358FD3C4F3B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{21DF7F4B-E208-4C57-85FC-A358FD3C4F3B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {028273A8-E36D-4930-B3CF-F52A324FDD47}
+		SolutionGuid = {E12E08DF-9B6B-4E09-9C7E-A761A83E6B12}
 	EndGlobalSection
 EndGlobal
