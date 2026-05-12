@@ -4,14 +4,23 @@ using System.Collections.Generic;
 //using Sony.Vegas;
 using ScriptPortal.Vegas;
 using NAudio.Wave;
+using System;
 
 namespace SuperBunnyCut
 {
 
     public class EntryPoint
     {
-        public float volumeThreshold = 0.05f;
-        public float pauseTimeMin = 1;  //1 Second
+        public float volumeThreshold = 0.01f;
+
+        public float pauseTimeMin = 0.2f;  //1 Second
+        //public int percentageCut = 50;  //Cut in the middle of the silence
+        //public float pauseCutOffLength = 10; //Will auto cut after 10 seconds
+
+        /// <summary>
+        /// Total length of read audio file in milliseconds
+        /// </summary>
+        private static double totalTime = 0;
 
         public void FromVegas(Vegas vegas)
         {
@@ -20,12 +29,11 @@ namespace SuperBunnyCut
 
             try
             {
+
                 TrackEvent[] selectedEvents = GetSelectedEvents(vegas.Project);
                 if (selectedEvents.Length == 0)
                     return;
 
-                int startArrayIndex = 0;
-                double startTrack = 0;
                 for (int i = 0; i < selectedEvents.Length; i++)
                 {
                     //MessageBox.Show(selectedEvents[i].MediaType.ToString());
@@ -34,53 +42,93 @@ namespace SuperBunnyCut
                     //Track our current focused Track when we cut it up
                     TrackEvent currentTrack = selectedEvents[i];
 
-                    while (true)
+                    int newStartIndex = 0;
+                    AudioEvent track = currentTrack as AudioEvent;
+                    float[] mediaSamples = ReadAudioSamples(track.ActiveTake.Media.FilePath);
+
+                    //Timing
+                    double millisecondsPerSample = (totalTime / mediaSamples.Length);
+                    int samplesPerMillisecond = (mediaSamples.Length / (int)totalTime);
+                    int minPauseSamples = (int)(pauseTimeMin * 1000) * samplesPerMillisecond;
+
+
+                    while (track != null)
                     {
-                        AudioEvent track = currentTrack as AudioEvent;
-                        Timecode trackLength = track.Length;
-                        MessageBox.Show("Start " + track.Start + " End: " + track.End + " Length: " + track.Length + " SyncOffset: " + track.SyncOffset + " TakeOffset: "+ track.ActiveTake.Offset);
-                        break;
-                        float[] array = ReadAudioSamples(currentTrack.ActiveTake.Media.FilePath);
-                        
+                        track = currentTrack as AudioEvent;
+                        if (track == null)
+                            break;
 
-                        MessageBox.Show("Track is " + trackLength.ToMilliseconds() + " Milliseconds long and array: " + array.Length);
+                        // The time the Event Starts
+                        // track.Start
 
-                        double sampleLength = trackLength.ToMilliseconds() / array.Length;
+                        // The Time the Event Ends
+                        // track.End
 
-                        List<PauseRange> pauses = new List<PauseRange>();
+                        // The current cut length of the event
+                        // track.Length
+
+                        // How much time was cut off the FRONT of this track's event
+                        // track.ActiveTake.Offset
+
+                        // How long the Audio File is
+                        // totalTime (Read after Read Audio Samples), rounds down to millisecond
+
+
+                        //MessageBox.Show("Lowest: " + lowest * 100 + " Highest: " + highest * 100);
+
+
+                        //MessageBox.Show("Start " + track.Start + " End: " + track.End + " Length: " + track.Length + " TakeOffset: " + track.ActiveTake.Offset + " samples: " + mediaSamples.Length
+                        //    + "\n Milli Per Sample: " + millisecondsPerSample
+                        //    + "\n Sample per Milli: " + samplesPerToMillisecond);
+
+                        //Start Index - Use the prev end index as it skips over the silence (in Theory)
+                        int mediaStartIndex = newStartIndex;
+                        if(mediaStartIndex == 0)
+                            mediaStartIndex = samplesPerMillisecond * (int)track.ActiveTake.Offset.ToMilliseconds();
+                        //double startTimeOffset = totalTime - track.ActiveTake.Offset.ToMilliseconds();
+
+                        //MessageBox.Show("Track is " + track.Length.ToMilliseconds() + " Milliseconds long and array: " + mediaSamples.Length + " Total Time: " + totalTime);
+
+                        //MessageBox.Show("Track is " + track.Length.ToMilliseconds() + " Milliseconds long and array: " + mediaSamples.Length);
+
+                        //double sampleLength = track.Length.ToMilliseconds() / mediaSamples.Length;
 
                         bool isPaused = false;
-                        int startIndex = 0;
-                        int endIndex = 0;
-                        for (int x = startArrayIndex; x < array.Length; x++)
+                        int startIndex = -1;
+                        int endIndex = -1;
+                        for (int x = mediaStartIndex; x < mediaSamples.Length; x++)
                         {
-                            //MessageBox.Show(array[x].ToString());
-
-                            if (array[x] <= volumeThreshold)
+                            if (mediaSamples[x] < volumeThreshold)
                             {
+                                //Get our start position
                                 if (isPaused == false)
                                 {
                                     isPaused = true;
-                                    //Start
                                     startIndex = x;
                                 }
+                                else if(x == mediaSamples.Length - 1 && startIndex != -1)
+                                {
+                                    endIndex = x;
+                                }
                                 continue;
-
                             }
                             else
                             {
                                 if (isPaused)
                                 {
                                     isPaused = false;
-
-                                    endIndex = x;
-                                    break;
-
-                                    //pauses.Add(new PauseRange(currentPause.startIndex, currentPause.endIndex));
-                                    //currentPause = new PauseRange();
+                                    //Within Threshold
+                                    if (x - startIndex >= minPauseSamples)
+                                    {
+                                        endIndex = x;
+                                        break;
+                                    }
+                                    //Else we try again
                                 }
                             }
                         }
+
+                        MessageBox.Show("Silence from: " + new Timecode(startIndex * millisecondsPerSample) + " to: " + new Timecode(endIndex * millisecondsPerSample));
 
                         //End of File or no more silence
                         if (startIndex == -1 || endIndex == -1)
@@ -88,29 +136,32 @@ namespace SuperBunnyCut
 
                         int indexLength = (endIndex - startIndex);
 
-                        //Continue to next loop
-                        if ((indexLength * sampleLength) <= pauseTimeMin * 1000)
-                        {
-                            startArrayIndex = endIndex;
-                            continue;
-                        }
+                        //newStartIndex = endIndex;
 
                         //Calculate pause Length
-                        int pauseMiddle = startIndex + (indexLength / 2);
-                        Timecode splitAt = new Timecode(pauseMiddle * sampleLength);
+                        int pauseMiddleIndex = startIndex + (indexLength / 2);
+
+
+                        //TEST
+                        //TrackEvent prev = currentTrack;
+                        //currentTrack.Split(new Timecode(endIndex * millisecondsPerSample));
+                        //prev.Split(new Timecode(startIndex * millisecondsPerSample));
+                        
+                        
+                        Timecode splitAt = new Timecode(pauseMiddleIndex * millisecondsPerSample);
                         currentTrack = currentTrack.Split(splitAt);
                     }
 
                     /*
                     Timecode code = new Timecode(array.Length);
 
-                    Timecode splitAt = new Timecode(trackLength.ToMilliseconds() / 2);
+                    Timecode splitAt = new Timecode(track.Length.ToMilliseconds() / 2);
                     */
                 }
             }
-            catch
+            catch (Exception e)
             {
-                MessageBox.Show("Error");
+                MessageBox.Show("Error:\n" + e, "ERROR");
             }
         }
 
@@ -144,6 +195,9 @@ namespace SuperBunnyCut
 
                 // Read samples into buffer
                 int samplesRead = isp.Read(buffer, 0, sampleCount);
+
+                // Pass to class for reading later
+                totalTime = reader.TotalTime.TotalMilliseconds;
 
                 return buffer;
             }
