@@ -7,6 +7,9 @@ namespace SuperBunnyCut
 {
     public class Global
     {
+        /// <summary>
+        /// The Read Audio Samples total track time in Milliseconds, ReadAudioSamples needs to be executed first
+        /// </summary>
         public static double totalTime;
 
         public static float[] ReadAudioSamples(string filename)
@@ -62,20 +65,15 @@ namespace SuperBunnyCut
         public int startIndex = 0;
         public int endIndex = 0;
 
-        public float startMilliseconds = 0;
-        public float endMilliseconds = 0;
-
         public PauseRange()
         {
 
         }
 
-        public PauseRange(int start, int end, float startMilli, float endMilli)
+        public PauseRange(int start, int end)
         {
             startIndex = start;
             endIndex = end;
-            startMilliseconds = startMilli;
-            endMilliseconds = endMilli;
         }
     }
 }

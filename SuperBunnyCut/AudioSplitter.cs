@@ -126,24 +126,17 @@ namespace SuperBunnyCut
                 int startSample = (int)(track.ActiveTake.Offset.ToMilliseconds() * samplesPerMillisecond);
                 int endSample = startSample + (int)(track.Length.ToMilliseconds() * samplesPerMillisecond);
 
-                //TODO
-                // Get the length of the Event and the offset
-                // Get the start and end sample indexs of the offset and offset + Event length
-                // Loop through ONLY those samples and get the cut time code
-                // cut at time + offset???
-
                 MessageBox.Show("Start " + track.Start.ToMilliseconds()
                     + "\nEnd: " + track.End.ToMilliseconds()
                     + "\nLength: " + track.Length.ToMilliseconds()
-                    + "\nSyncOffset: " + track.SyncOffset
-                    + "\nTakeOffset: " + track.ActiveTake.Offset
+                    + "\nTakeOffset: " + track.ActiveTake.Offset.ToMilliseconds()
                     + "\nSamples: " + mediaSamples.Length
                     + "\nSample Start: " + startSample
                     + "\nSample End: " + endSample
                     + "\nSamples Per Millisecond: " + samplesPerMillisecond
                     + "\nSample Length: " + sampleLength
                     + "\nSample Min Pause: " + minPauseSamples
-                    + "\nSample Estimate Total: " + samplesPerMillisecond * track.Length.ToMilliseconds()
+                    + "\nSample Estimate Total(ms): " + samplesPerMillisecond * track.Length.ToMilliseconds()
                     , "Media Data");
             }
         }
@@ -170,16 +163,8 @@ namespace SuperBunnyCut
                 int startSample = (int)(track.ActiveTake.Offset.ToMilliseconds() * samplesPerMillisecond);
                 int endSample = startSample + (int)(track.Length.ToMilliseconds() * samplesPerMillisecond);
 
-                //TODO
-                // Get the length of the Event and the offset
-                // Get the start and end sample indexs of the offset and offset + Event length
-                // Loop through ONLY those samples and get the cut time code
-                // cut at time + offset???
-
                 bool isPaused = false;
                 PauseRange pauseTracker = new PauseRange();
-                //int startIndex = 0;
-                //int endIndex = 0;
 
                 //Edge Check
                 if(endSample > mediaSamples.Length)
@@ -200,7 +185,7 @@ namespace SuperBunnyCut
                             //End of Track, force cut
                             pauseTracker.endIndex = x;
                             //pauses.Add(new PauseRange(startIndex, endIndex));
-                            pauses.Add(new PauseRange(pauseTracker.startIndex, pauseTracker.endIndex, pauseTracker.startMilliseconds, pauseTracker.endMilliseconds));
+                            pauses.Add(new PauseRange(pauseTracker.startIndex, pauseTracker.endIndex));
                             pauseTracker.startIndex = 0;
                             pauseTracker.endIndex = 0;
                         }
@@ -215,7 +200,7 @@ namespace SuperBunnyCut
                             if (x - pauseTracker.startIndex >= minPauseSamples)
                             {
                                 pauseTracker.endIndex = x;
-                                pauses.Add(new PauseRange(pauseTracker.startIndex, pauseTracker.endIndex, pauseTracker.startMilliseconds, pauseTracker.endMilliseconds));
+                                pauses.Add(new PauseRange(pauseTracker.startIndex, pauseTracker.endIndex));
                                 pauseTracker.startIndex = 0;
                                 pauseTracker.endIndex = 0;
                                 continue;
@@ -229,8 +214,6 @@ namespace SuperBunnyCut
                         }
                     }
                 }
-
-                MessageBox.Show("Found Cuts: " + pauses.Count);
 
                 //Cut in Reverse
                 for (int x = pauses.Count - 1; x >= 0; x--)
@@ -249,29 +232,17 @@ namespace SuperBunnyCut
                     //The point on the entire clip we want to cut at
                     double absoluteTimeSplit = absoluteIndex * millisecondsPerSample;
 
-
+                    //Cut the track offset time to where we are doing our checks
                     double offsetSplit = absoluteTimeSplit - (track.ActiveTake.Offset.ToMilliseconds());
-
-                    //The point when this cut should be considered
-                    //double absoluteStartTime = pauses[x].startIndex * millisecondsPerSample;
-
-                    //Goal: Convert the sample index to the time code
-                    // Need to get the timecode offset for the start of the track
-                    // need to get the sample offset for where the track begins in milliseconds
-
-                    //SampleLength = Entire selected track's Length in Milliseconds
-                    //indexSplitPoint = the ARRAY INDEX we want to split at (Of the selected track)
-
-
-                    //Get track off in array?
-                    // minus the offset to the indexplsit point
 
                     Timecode splitAt = new Timecode(offsetSplit);
 
+                    /*
                     MessageBox.Show("SPLIT: " + splitAt.ToMilliseconds()
                         + "\n index: " + indexSplitPoint
                         + "\n samleLEn: " + sampleLength);
                     track.Split(splitAt);
+                    */
                 }
             }
         }
