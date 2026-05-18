@@ -236,12 +236,12 @@ namespace SuperBunnyCut
                     double offsetSplit = absoluteTimeSplit - (track.ActiveTake.Offset.ToMilliseconds());
 
                     Timecode splitAt = new Timecode(offsetSplit);
+                    track.Split(splitAt);
 
                     /*
                     MessageBox.Show("SPLIT: " + splitAt.ToMilliseconds()
                         + "\n index: " + indexSplitPoint
                         + "\n samleLEn: " + sampleLength);
-                    track.Split(splitAt);
                     */
                 }
             }
