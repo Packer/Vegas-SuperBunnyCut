@@ -1,3 +1,6 @@
+# Super Bunny Cut
+![Alt](https://github.com/Packer/Vegas-SuperBunnyCut/blob/main/SuperBunnyCut.png?raw=true)
+
 # Features:
 * Automated splitting of audio tracks during selected periods of silence
 
